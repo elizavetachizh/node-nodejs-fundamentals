@@ -7,16 +7,16 @@ const restore = async () => {
   const restoredRoot = path.join(cwd, 'workspace_restored');
 
   try {
-    // Ensure snapshot.json exists
+    // Проверяем, что snapshot.json существует
     await fs.access(snapshotPath);
 
-    // Fail if workspace_restored already exists (file or directory)
+    // Если workspace_restored уже существует (файл или директория) - выбрасываем ошибку
     try {
       await fs.stat(restoredRoot);
-      // If stat succeeds, path exists -> error as per requirements
+      // Если stat отработал успешно, путь существует - это ошибка по условию
       throw new Error('FS operation failed');
     } catch (error) {
-      // If error is anything other than "does not exist", rethrow
+      // Если ошибка не "файл/папка не существует", пробрасываем её дальше
       if (error && error.code !== 'ENOENT') {
         throw error;
       }
@@ -26,14 +26,14 @@ const restore = async () => {
     const snapshot = JSON.parse(raw);
     const entries = Array.isArray(snapshot.entries) ? snapshot.entries : [];
 
-    // Create directories first
+    // Сначала создаём все директории
     const dirEntries = entries.filter((entry) => entry.type === 'directory');
     for (const dirEntry of dirEntries) {
       const dirPath = path.join(restoredRoot, dirEntry.path);
       await fs.mkdir(dirPath, { recursive: true });
     }
 
-    // Then create files with decoded content
+    // Затем создаём файлы с декодированным содержимым
     const fileEntries = entries.filter((entry) => entry.type === 'file');
     for (const fileEntry of fileEntries) {
       const filePath = path.join(restoredRoot, fileEntry.path);

@@ -7,7 +7,7 @@ const merge = async () => {
   const partsPath = path.join(workspacePath, 'parts');
   const outputFile = path.join(workspacePath, 'merged.txt');
 
-  // Parse CLI argument: --files filename1,filename2,...
+  // Разбираем аргумент CLI: --files filename1,filename2,...
   const args = process.argv.slice(2);
   const filesFlagIndex = args.indexOf('--files');
   let filesFromCli = null;
@@ -37,13 +37,13 @@ const merge = async () => {
     let filesToMerge = [];
 
     if (filesFromCli) {
-      // Use only files listed in --files, in given order
+      // Используем только файлы, указанные в --files, в заданном порядке
       filesToMerge = filesFromCli.map((name) => ({
         name,
         fullPath: path.join(partsPath, name),
       }));
 
-      // Ensure all requested files exist and are files
+      // Проверяем, что все запрошенные файлы существуют и являются файлами
       for (const file of filesToMerge) {
         const stat = await fs.stat(file.fullPath).catch(() => null);
         if (!stat || !stat.isFile()) {
@@ -51,7 +51,7 @@ const merge = async () => {
         }
       }
     } else {
-      // Default: all .txt files from workspace/parts in alphabetical order
+      // Поведение по умолчанию: все .txt файлы из workspace/parts в алфавитном порядке
       const dirEntries = await fs.readdir(partsPath, { withFileTypes: true });
       const txtFiles = dirEntries
         .filter((dirent) => dirent.isFile() && path.extname(dirent.name) === '.txt')
@@ -75,7 +75,7 @@ const merge = async () => {
       mergedContent += content;
     }
 
-    // Ensure workspace directory exists before writing
+    // Перед записью убеждаемся, что директория workspace существует
     await fs.mkdir(workspacePath, { recursive: true });
     await fs.writeFile(outputFile, mergedContent, 'utf8');
   } catch {

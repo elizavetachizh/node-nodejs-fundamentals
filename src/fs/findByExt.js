@@ -4,7 +4,7 @@ import path from 'node:path';
 const findByExt = async () => {
   const workspacePath = path.join(process.cwd(), 'workspace');
 
-  // Parse CLI arguments: --ext <extension>
+  // Разбираем аргументы CLI: --ext <extension>
   const args = process.argv.slice(2);
   const extFlagIndex = args.indexOf('--ext');
   let ext = '.txt';
@@ -15,13 +15,16 @@ const findByExt = async () => {
   }
 
   try {
+    // Проверяем, что workspace существует и это директория
     const stats = await fs.stat(workspacePath);
     if (!stats.isDirectory()) {
       throw new Error('FS operation failed');
     }
 
+    // Сюда собираем все найденные файлы с нужным расширением
     const results = [];
 
+    // Рекурсивный обход директории workspace
     const walk = async (dir) => {
       const dirEntries = await fs.readdir(dir, { withFileTypes: true });
 
@@ -32,8 +35,10 @@ const findByExt = async () => {
           .replace(/\\/g, '/');
 
         if (dirent.isDirectory()) {
+          // Если это директория — спускаемся глубже
           await walk(fullPath);
         } else if (dirent.isFile()) {
+          // Если это файл и расширение совпадает — добавляем в результаты
           if (path.extname(dirent.name) === ext) {
             results.push(relativePath);
           }
@@ -43,6 +48,7 @@ const findByExt = async () => {
 
     await walk(workspacePath);
 
+    // Сортируем пути по алфавиту и выводим по одному в строке
     results.sort((a, b) => a.localeCompare(b));
     for (const filePath of results) {
       console.log(filePath);
